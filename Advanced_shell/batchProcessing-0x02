@@ -1,0 +1,28 @@
+#!/bin/bash
+#!/bin/bash
+
+# List of Pokémon to retrieve
+pokemon_list=("Bulbasaur" "Ivysaur" "Venusaur" "Charmander" "Charmeleon")
+
+# Loop through each Pokémon
+for pokemon in "${pokemon_list[@]}"; do
+  # Convert to lowercase for the API and filename
+  pname=$(echo "$pokemon" | tr '[:upper:]' '[:lower:]')
+  
+  echo "Fetching data for $pokemon..."
+  
+  # Fetch data from the API and save to <pokemon>.json
+  curl -s "https://pokeapi.co/api/v2/pokemon/$pname" -o "$pname.json"
+  
+  # Check if the request succeeded
+  if [[ $? -eq 0 ]]; then
+    echo "Saved $pname.json"
+  else
+    echo "Failed to fetch data for $pokemon"
+  fi
+  
+  # Delay 2 seconds to avoid rate-limiting
+  sleep 2
+done
+
+echo "All done!"
