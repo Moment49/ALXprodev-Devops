@@ -1,27 +1,25 @@
 #!/bin/bash
-#!/bin/bash
 
-# Output CSV file
 output_file="pokemon_report.csv"
 
 # Write CSV header
 echo "Name,Height,Weight" > "$output_file"
 
-# Loop over all .json files in the current directory
+# Loop over all JSON files in current directory
 for jsonfile in *.json; do
-  # Extract fields using jq
   name=$(jq -r '.name' "$jsonfile")
   height=$(jq -r '.height' "$jsonfile")
   weight=$(jq -r '.weight' "$jsonfile")
 
-  # Append to CSV (keep height and weight as raw units)
   echo "$name,$height,$weight" >> "$output_file"
 done
 
 echo "CSV file $output_file created."
 
-# Calculate averages using awk
-# height and weight are raw units from API (decimeters and hectograms)
+# Use sed to clean up the CSV file (e.g., remove trailing spaces after commas)
+sed -i 's/, */,/g' "$output_file"
+
+# Use awk to calculate averages and append to the CSV file
 awk -F, '
   NR > 1 {
     total_height += $2
@@ -31,7 +29,6 @@ awk -F, '
   END {
     avg_height = total_height / count
     avg_weight = total_weight / count
-    # Convert height from decimeters to meters, weight from hectograms to kg
     printf "\nAverage Height (m),Average Weight (kg)\n%.2f,%.2f\n", avg_height/10, avg_weight/10
   }
 ' "$output_file" >> "$output_file"
