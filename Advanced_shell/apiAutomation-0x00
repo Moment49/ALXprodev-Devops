@@ -3,9 +3,9 @@ API_URL="https://pokeapi.co/api/v2/pokemon/25/"
 request= $(curl  -X GET "$API_URL" -H "Content-Type: application/json")
 
 if "$request" | jq; then
-    printf "%s\n" "Request was successful" $request | jq 
+    printf "%s\n" "Request was successful" $request | jq > data.json
 else
-    echo "Request failed"  
+    trap 'echo "Request failed"; exit 1' 
 fi
 
 # This script fetches data for the Pokémon with ID 25 (Pikachu) from the PokeAPI
