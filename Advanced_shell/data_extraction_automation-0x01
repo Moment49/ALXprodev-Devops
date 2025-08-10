@@ -1,0 +1,6 @@
+#!/bin/bash
+File_name='data.json'
+jq -r '
+  "\((.name | (.[0:1] | ascii_upcase) + .[1:])) is of type \((.types[0].type.name | (.[0:1] | ascii_upcase) + .[1:]))," +
+  " weighs \(.weight / 10)kg, and is \(.height / 10)m tall."
+' "$File_name"
