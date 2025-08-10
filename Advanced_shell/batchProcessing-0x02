@@ -1,29 +1,41 @@
 #!/bin/bash
-# Define the list as a string with square brackets
+
+# JSON-style Pokémon list as a string (square brackets + quotes)
 pokemon_list='["bulbasaur", "ivysaur", "venusaur", "charmander", "charmeleon"]'
+log_file="error_log.txt"
 
-# Remove the brackets and quotes, then convert commas to spaces
-pokemon_list_clean=$(echo "$pokemon_list" | sed 's/[][]//g' | sed 's/"//g' | sed 's/,/ /g')
+# Clear previous error log
+> "$log_file"
 
-# Loop through each Pokémon
-for pokemon in $pokemon_list_clean; do
-  # Convert to lowercase for the API and filename
-  pname=$(echo "$pokemon" | tr '[:upper:]' '[:lower:]')
-  
+# Use jq to parse the JSON array and loop through each Pokémon
+for pokemon in $(echo "$pokemon_list" | jq -r '.[]'); do
   echo "Fetching data for $pokemon..."
   
-  # Fetch data from the API and save to <pokemon>.json
-  curl -s "https://pokeapi.co/api/v2/pokemon/$pname" -o "$pname.json"
-  
-  # Check if the request succeeded
-  if [[ $? -eq 0 ]]; then
-    echo "Saved $pname.json"
-  else
-    echo "Failed to fetch data for $pokemon"
+  success=0
+  attempts=0
+  max_attempts=3
+
+  while [[ $attempts -lt $max_attempts ]]; do
+    ((attempts++))
+    
+    http_code=$(curl -s -w "%{http_code}" -o "$pokemon.json" "https://pokeapi.co/api/v2/pokemon/$pokemon")
+    
+    if [[ "$http_code" == "200" ]]; then
+      echo "Saved $pokemon.json"
+      success=1
+      break
+    else
+      echo "Attempt $attempts for $pokemon failed (HTTP $http_code). Retrying..."
+      sleep 2
+    fi
+  done
+
+  if [[ $success -ne 1 ]]; then
+    echo "Failed to fetch data for $pokemon after $max_attempts attempts." | tee -a "$log_file"
+    [[ -f "$pokemon.json" ]] && rm "$pokemon.json"
   fi
-  
-  # Delay 2 seconds to avoid rate-limiting
+
   sleep 2
 done
 
-echo "All done!"
+echo "All done! Errors logged in $log_file (if any)."
