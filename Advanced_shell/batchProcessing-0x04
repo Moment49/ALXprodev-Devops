@@ -1,5 +1,4 @@
 #!/bin/bash
-#!/bin/bash
 
 # JSON-style Pokémon list
 pokemon_list='["bulbasaur", "ivysaur", "venusaur", "charmander", "charmeleon"]'
