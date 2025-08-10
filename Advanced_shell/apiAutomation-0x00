@@ -1,0 +1,14 @@
+#!/bin/bash
+API_URL="https://pokeapi.co/api/v2/pokemon/25/"
+request = curl  -X GET "$API_URL" -H "Content-Type: application/json"
+
+if "$request" | jq; then
+    printf "%s\n" "Request was successful" $request | jq 
+else
+    echo "Request failed"  
+fi
+
+# This script fetches data for the Pokémon with ID 25 (Pikachu) from the PokeAPI
+# and formats the output using jq for better readability.
+# Ensure you have jq installed to parse the JSON response.
+# You can install jq using your package manager, e.g., `sudo apt-get install jq` on Debian-based systems.
