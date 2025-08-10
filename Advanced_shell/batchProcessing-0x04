@@ -2,23 +2,21 @@
 
 pokemon_list='["bulbasaur", "ivysaur", "venusaur", "charmander", "charmeleon"]'
 timeout_sec=10
+max_attempts=3
 
 fetch_pokemon() {
   local pokemon=$1
   echo "Starting fetch for $pokemon..."
 
-  local max_attempts=3
   local attempt=0
   local success=0
 
   while (( attempt < max_attempts )); do
     ((attempt++))
-
-    # Start curl in background
+    
     curl -s -o "$pokemon.json" "https://pokeapi.co/api/v2/pokemon/$pokemon" &
     pid=$!
-
-    # Wait up to timeout_sec for curl to finish
+    
     local waited=0
     while kill -0 "$pid" 2>/dev/null; do
       sleep 1
@@ -30,10 +28,10 @@ fetch_pokemon() {
         break
       fi
     done
-
+    
     wait "$pid"
     http_code=$?
-
+    
     if [[ $http_code -eq 0 && -s "$pokemon.json" ]]; then
       echo "Successfully saved $pokemon.json"
       success=1
@@ -52,10 +50,16 @@ fetch_pokemon() {
 
 export -f fetch_pokemon
 
+# Start fetch jobs in background
 for pokemon in $(echo "$pokemon_list" | jq -r '.[]'); do
   fetch_pokemon "$pokemon" &
 done
 
+# Show running jobs
+echo "Current background jobs:"
+jobs
+
+# Wait for all jobs to finish
 wait
 
 echo "All Pokémon data fetched."
