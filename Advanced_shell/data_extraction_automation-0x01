@@ -1,9 +1,19 @@
 #!/bin/bash
 File_name='data.json'
 
-name=$(jq -r '.name | (.[0:1] | ascii_upcase) + .[1:]' "$File_name")
-type=$(jq -r '.types[0].type.name | (.[0:1] | ascii_upcase) + .[1:]' "$File_name")
-formatted_weight=$(jq -r '.weight / 10' "$File_name")
-formatted_height=$(jq -r '.height / 10' "$File_name")
+name=$(jq -r '.name' "$File_name")
+type=$(jq -r '.types[0].type.name' "$File_name")
+formatted_weight=$(jq -r '.weight' "$File_name")
+formatted_height=$(jq -r '.height' "$File_name")
 
-echo "$name is of type $type, weighs ${formatted_weight}kg, and is ${formatted_height}m tall."
+echo "$name $type $formatted_weight $formatted_height" | \
+awk '{
+  # Capitalize first letter of a string in field 1 and 2
+  name = toupper(substr($1,1,1)) substr($1,2)
+  type = toupper(substr($2,1,1)) substr($2,2)
+  weight = $3 / 10
+  height = $4 / 10
+
+  printf "%s is of type %s, weighs %gkg, and is %gm tall.\n", name, type, weight, height
+}' | \
+sed -E 's/ ,/,/g'
