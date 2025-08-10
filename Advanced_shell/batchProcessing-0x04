@@ -1,0 +1,47 @@
+#!/bin/bash
+#!/bin/bash
+
+# JSON-style Pokémon list
+pokemon_list='["bulbasaur", "ivysaur", "venusaur", "charmander", "charmeleon"]'
+
+# Function to fetch one Pokémon's data with basic error handling
+fetch_pokemon() {
+  local pokemon=$1
+  echo "Starting fetch for $pokemon..."
+  
+  # Try up to 3 times
+  local max_attempts=3
+  local attempt=0
+  local success=0
+  
+  while (( attempt < max_attempts )); do
+    ((attempt++))
+    http_code=$(curl -s -w "%{http_code}" -o "$pokemon.json" "https://pokeapi.co/api/v2/pokemon/$pokemon")
+    if [[ "$http_code" == "200" ]]; then
+      echo "Successfully saved $pokemon.json"
+      success=1
+      break
+    else
+      echo "Attempt $attempt failed for $pokemon (HTTP $http_code), retrying..."
+      sleep 2
+    fi
+  done
+
+  if [[ $success -ne 1 ]]; then
+    echo "Failed to fetch $pokemon after $max_attempts attempts."
+    [[ -f "$pokemon.json" ]] && rm "$pokemon.json"
+  fi
+}
+
+# Export function for parallel usage if needed
+export -f fetch_pokemon
+
+# Use jq to parse Pokémon list and launch parallel jobs in background
+for pokemon in $(echo "$pokemon_list" | jq -r '.[]'); do
+  fetch_pokemon "$pokemon" &
+done
+
+# Wait for all background fetches to finish before moving on
+wait
+
+echo "All Pokémon data fetched."
