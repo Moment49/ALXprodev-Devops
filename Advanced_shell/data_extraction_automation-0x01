@@ -6,14 +6,20 @@ type=$(jq -r '.types[0].type.name' "$File_name")
 formatted_weight=$(jq -r '.weight' "$File_name")
 formatted_height=$(jq -r '.height' "$File_name")
 
-echo "$name $type $formatted_weight $formatted_height" | \
-awk '{
-  # Capitalize first letter of a string in field 1 and 2
-  name = toupper(substr($1,1,1)) substr($1,2)
-  type = toupper(substr($2,1,1)) substr($2,2)
-  weight = $3 / 10
-  height = $4 / 10
+read name type formatted_weight formatted_height < <(
+  echo "$name $type $formatted_weight $formatted_height" | \
+  awk '{
+    # Capitalize first letter inline for $1 (name)
+    name = toupper(substr($1,1,1)) substr($1,2)
+    # Capitalize first letter inline for $2 (type)
+    type = toupper(substr($2,1,1)) substr($2,2)
+    # Convert weight and height dividing by 10
+    weight = $3 / 10
+    height = $4 / 10
+    # Print all four transformed values space-separated
+    printf "%s %s %.1f %.1f\n", name, type, weight, height
+  }' | \
+  sed 's/ \+/ /g'
+)
 
-  printf "%s is of type %s, weighs %gkg, and is %gm tall.\n", name, type, weight, height
-}' | \
-sed -E 's/ ,/,/g'
+echo "$name is of type $type, weighs ${formatted_weight}kg, and is ${formatted_height}m tall."
