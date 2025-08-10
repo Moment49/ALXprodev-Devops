@@ -8,11 +8,10 @@ if [ "$status_code" -eq 200 ]; then
     echo "Request was successful and saved to the data.json file"
     echo $body | jq  '.' > data.json
 else
-    echo $body | jq '.' >> errors.json
+    echo $body | jq '.' >> errors.txt
     echo "Request failed with status code $status_code"
 
 fi
-
 
 # This script fetches data for the Pokémon with ID 25 (Pikachu) from the PokeAPI
 # and formats the output using jq for better readability.
