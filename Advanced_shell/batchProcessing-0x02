@@ -1,9 +1,12 @@
 #!/bin/bash
-# List of Pokémon to retrieve
-pokemon_list=["bulbasaur", "ivysaur", "venusaur", "charmander", "charmeleon"]
+# Define the list as a string with square brackets
+pokemon_list='["bulbasaur", "ivysaur", "venusaur", "charmander", "charmeleon"]'
+
+# Remove the brackets and quotes, then convert commas to spaces
+pokemon_list_clean=$(echo "$pokemon_list" | sed 's/[][]//g' | sed 's/"//g' | sed 's/,/ /g')
 
 # Loop through each Pokémon
-for pokemon in "${pokemon_list[@]}"; do
+for pokemon in $pokemon_list_clean; do
   # Convert to lowercase for the API and filename
   pname=$(echo "$pokemon" | tr '[:upper:]' '[:lower:]')
   
